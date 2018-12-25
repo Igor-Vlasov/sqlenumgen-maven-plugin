@@ -120,12 +120,12 @@ public class SqlEnumGeneratorMojo extends AbstractMojo {
           enumNames = new HashMap<>();
           enumNames.put(enumCfg.getName(), enumCfg.getName());
         } else {
-          enumNames = this.readEnumNamesFromDB(connection, enumCfg);
+          enumNames = this.readEnumNamesFromDB(connection, this.generator.getDatabaseSchema(), enumCfg);
         }
         for (final String escapedEnumName : enumNames.keySet()) {
           this.getLog().info(String.format("Generating enum \"%s\"", escapedEnumName));
           enumCfg.setName(enumNames.get(escapedEnumName));
-          final EnumRepr enumRepr = this.generateEnumRepr(connection, enumCfg, escapedEnumName, columns);
+          final EnumRepr enumRepr = this.generateEnumRepr(connection, this.generator.getDatabaseSchema(), enumCfg, escapedEnumName, columns);
 
           final VelocityContext context = this.createContext(enumRepr);
 
@@ -275,10 +275,10 @@ public class SqlEnumGeneratorMojo extends AbstractMojo {
     return sb.toString();
   }
 
-  private Map<String, String> readEnumNamesFromDB(final Connection connection, final EnumCfg enumCfg) throws SQLException, MojoFailureException {
+  private Map<String, String> readEnumNamesFromDB(final Connection connection, final String databaseSchema, final EnumCfg enumCfg) throws SQLException, MojoFailureException {
     final Map<String, String> enumNames = new HashMap<>();
     try (
-      PreparedStatement stmt = connection.prepareStatement("SELECT DISTINCT " + enumCfg.getNameColumn() + " FROM " + enumCfg.getTable());
+      PreparedStatement stmt = connection.prepareStatement("SELECT DISTINCT " + enumCfg.getNameColumn() + " FROM " + getTableDef(databaseSchema, enumCfg));
       ResultSet result = stmt.executeQuery();
     ) {
       while (result.next()) {
@@ -293,8 +293,20 @@ public class SqlEnumGeneratorMojo extends AbstractMojo {
     return enumNames;
   }
 
+  private String getTableDef(final String databaseSchema, final EnumCfg enumCfg) {
+    final String tableDef;
+    if (databaseSchema == null) {
+      tableDef = enumCfg.getTable();
+    } else {
+      tableDef = databaseSchema + "." + enumCfg.getTable();
+    }
+
+    return tableDef;
+  }
+
   private EnumRepr generateEnumRepr(
       final Connection connection,
+      final String databaseSchema,
       final EnumCfg enumCfg,
       final String escapedEnumName,
       final LinkedMap<String, Column> columns
@@ -311,7 +323,7 @@ public class SqlEnumGeneratorMojo extends AbstractMojo {
     }
 
     try (
-        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM " + enumCfg.getTable() + condition);
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM " + getTableDef(databaseSchema, enumCfg) + condition);
         ResultSet result = stmt.executeQuery()
     ) {
       while (result.next()) {
