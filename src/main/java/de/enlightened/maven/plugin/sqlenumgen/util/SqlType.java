@@ -25,11 +25,12 @@ import org.apache.commons.lang.StringEscapeUtils;
  */
 public enum SqlType {
   VARCHAR(Types.VARCHAR, String.class, "\"%s\""),
-  CHAR(Types.VARCHAR, String.class, "\"%s\""),
+  CHAR(Types.CHAR, String.class, "\"%s\""),
   LONGVARCHAR(Types.VARCHAR, String.class, "\"%s\""),
   NUMERIC(Types.NUMERIC, BigDecimal.class, "new BigDecimal(\"%s\")"),
   DECIMAL(Types.DECIMAL, BigDecimal.class, "new BigDecimal(\"%s\")"),
   BIT(Types.BIT, Boolean.class),
+  BOOLEAN(Types.BOOLEAN, Boolean.class),
   TINYINT(Types.TINYINT, Byte.class),
   SMALLINT(Types.SMALLINT, Short.class),
   INTEGER(Types.INTEGER, Integer.class),

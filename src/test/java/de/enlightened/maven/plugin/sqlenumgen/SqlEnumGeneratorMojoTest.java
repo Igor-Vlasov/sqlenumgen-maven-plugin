@@ -383,7 +383,7 @@ public class SqlEnumGeneratorMojoTest extends AbstractMojoTestCase {
     enumCfg.setNameColumn("nameColumn");
     enumCfg.setTable("table");
 
-    final Map<String, String> enumNames = (Map<String, String>) Whitebox.invokeMethod(mojo, "readEnumNamesFromDB", connection, enumCfg);
+    final Map<String, String> enumNames = (Map<String, String>) Whitebox.invokeMethod(mojo, "readEnumNamesFromDB", connection, null, enumCfg);
     assertTrue(enumNames.containsKey("name1"));
     assertEquals(enumNames.get("name1"), "name1");
     assertTrue(enumNames.containsKey("name2"));
